@@ -116,8 +116,8 @@ static void enable_emergency_dload_mode(void)
 				emergency_dload_mode_addr +
 				(2 * sizeof(unsigned int)));
 
-		/* Need disable the pmic wdt, then the emergency dload mode
-		 * will not auto reset. */
+		// Need disable the pmic wdt, then the emergency dload mode
+		// will not auto reset.
 		qpnp_pon_wd_config(0);
 		mb();
 	}
@@ -159,7 +159,8 @@ static bool get_dload_mode(void)
 
 void msm_set_restart_mode(int mode)
 {
-	restart_mode = mode;
+	if (mode != RESTART_DLOAD)
+		restart_mode = mode;
 }
 EXPORT_SYMBOL(msm_set_restart_mode);
 
@@ -256,7 +257,7 @@ static void msm_restart_prepare(const char *cmd)
 	set_dload_mode(0);
 
 	/* Write download mode flags if we're panic'ing */
-	set_dload_mode(in_panic);
+	//set_dload_mode(in_panic);
 
 	/* Write download mode flags if restart_mode says so */
 	if (restart_mode == RESTART_DLOAD)
@@ -270,7 +271,7 @@ static void msm_restart_prepare(const char *cmd)
 	pm8xxx_reset_pwr_off(1);
 
 	/* Hard reset the PMIC unless memory contents must be maintained. */
-	if (get_dload_mode() || (cmd != NULL && cmd[0] != '\0'))
+	if (get_dload_mode() || (cmd != NULL && cmd[0] != '\0') || in_panic)
 		qpnp_pon_system_pwr_off(PON_POWER_OFF_WARM_RESET);
 	else
 		qpnp_pon_system_pwr_off(PON_POWER_OFF_HARD_RESET);
